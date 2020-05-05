@@ -7,6 +7,7 @@ import zlib
 from random import randint
 from struct import pack
 
+import stub_shellcode_go
 import stub_unmanaged_go
 
 def xor(block):
@@ -24,7 +25,7 @@ def xor(block):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Basic packer using XOR encryption', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-f', '--file', type=str, required=True, help='specify the payload file')
-    parser.add_argument('-t', '--type', type=str, choices=['UNMANAGED'], default='UNMANAGED', help='specify the payload type')
+    parser.add_argument('-t', '--type', type=str, choices=['SHELLCODE', 'UNMANAGED'], default='UNMANAGED', help='specify the payload type')
     args = parser.parse_args()
 
     print()
@@ -46,15 +47,18 @@ if __name__ == "__main__":
     plain = payload[128:132]
     known_bytes = ''.join(format(c, '02x') for c in plain)
 
-    source = stub_unmanaged_go.loader.format(encrypted, known_bytes)
-    repl = '''/*
+    if args.type == "SHELLCODE":
+        source = stub_shellcode_go.loader.format(encrypted, known_bytes)
+    else:
+        source = stub_unmanaged_go.loader.format(encrypted, known_bytes)
+        repl = '''/*
 #cgo CFLAGS: -IMemoryModule
 #cgo LDFLAGS: MemoryModule/build/MemoryModule.a
 #include "MemoryModule/MemoryModule.h"
 */
 import "C"
 '''
-    source = source.replace('import "C"', repl)
+        source = source.replace('import "C"', repl)
 
     with open('payload.go', 'w') as f:
         f.write(source)    
