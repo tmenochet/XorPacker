@@ -40,7 +40,7 @@ GOOS=windows GOARCH=386 CGO_ENABLED=1 CC=i686-w64-mingw32-gcc go build payload.g
 ```
 
 
-## Packing managed PE
+## Packing .NET assembly
 
 1. Install Donut's Python extension:
 
@@ -48,7 +48,7 @@ GOOS=windows GOARCH=386 CGO_ENABLED=1 CC=i686-w64-mingw32-gcc go build payload.g
 pip3 install donut-shellcode
 ```
 
-2. Generate the packed PE:
+2. Generate the packed PE (x64 version):
 
 ```
 python3 ./xorpacker.py -f Grunt.exe -t MANAGED -a x64
@@ -57,7 +57,22 @@ python3 ./xorpacker.py -f Grunt.exe -t MANAGED -a x64
 3. Compile the resulting GO code:
 
 ```
-GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build payload.go
+GOOS=windows GOARCH=amd64 go build payload.go
+```
+
+
+## Packing shellcode
+
+1. Generate the packed PE:
+
+```
+python3 ./xorpacker.py -f meterpreter.bin -t SHELLCODE
+```
+
+2. Compile the resulting GO code:
+
+```
+GOOS=windows GOARCH=amd64 go build -ldflags -H=windowsgui payload.go
 ```
 
 
@@ -65,3 +80,4 @@ GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build paylo
 
 * https://github.com/Sogeti-Pentest/Encrypter-Metasploit
 * https://github.com/vyrus001/go-mimikatz
+* https://thewover.github.io/Introducing-Donut
