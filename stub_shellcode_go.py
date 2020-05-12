@@ -4,7 +4,7 @@ package main
 import (
     "bytes"
     "encoding/binary"
-    "encoding/hex"
+    "encoding/base64"
     "compress/zlib"
     "io"
 
@@ -37,9 +37,8 @@ func bf_xor(block []byte, known_bytes []byte) []byte {{
 }}
 
 func main() {{
-    compressed, _ := hex.DecodeString("{0}")
-    known_bytes, _ := hex.DecodeString("{1}")
-
+    compressed, _ := base64.StdEncoding.DecodeString("{0}")
+    known_bytes, _ := base64.StdEncoding.DecodeString("{1}")
     var b1, b2 bytes.Buffer
     b1.Write([]byte(compressed))
     r, _ := zlib.NewReader(&b1)
