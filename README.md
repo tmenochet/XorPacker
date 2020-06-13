@@ -39,6 +39,11 @@ GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build paylo
 GOOS=windows GOARCH=386 CGO_ENABLED=1 CC=i686-w64-mingw32-gcc go build payload.go
 ```
 
+Additionally, consider the use of the following flags in the GO build command:
+  * `-trimpath`: remove file system paths
+  * `-ldflags "-w -s"`: strip debug (DWARF) & classic symbols
+  * `-ldflags "-H=windowsgui"`: hide Terminal window
+
 
 ## Packing .NET assembly
 
@@ -66,13 +71,13 @@ GOOS=windows GOARCH=amd64 go build payload.go
 1. Generate the packed PE:
 
 ```
-python3 ./xorpacker.py -f meterpreter.bin -t SHELLCODE
+python3 ./xorpacker.py -f meterpreter.raw -t SHELLCODE
 ```
 
 2. Compile the resulting GO code:
 
 ```
-GOOS=windows GOARCH=amd64 go build -ldflags -H=windowsgui payload.go
+GOOS=windows GOARCH=amd64 go build payload.go
 ```
 
 
