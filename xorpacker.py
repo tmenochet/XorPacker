@@ -7,6 +7,7 @@ import zlib
 from base64 import b64encode
 from random import randint
 from struct import pack
+from itertools import cycle
 try: 
     import donut
 except ImportError: 
@@ -18,13 +19,7 @@ import stub_unmanaged_go
 def xor(block):
     key = randint(0,42949672)
     key_tab = pack('<L',key)
-    encrypted = b""
-    i = 0
-    for ch in block:
-        byte = key_tab[i%4]
-        t = ch ^ byte
-        encrypted += bytes([t])
-        i += 1
+    encrypted = bytes(a ^ b for a, b in zip(block, cycle(key_tab)))
     return encrypted
 
 if __name__ == "__main__":
